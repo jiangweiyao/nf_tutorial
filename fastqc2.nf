@@ -16,14 +16,16 @@ process fastqc {
     file fastq from fastq_files
  
     output:
-    file "*_fastqc.{zip,html}" into qc_files
-    file "*_fastqc.{zip,html}" into qc_files1
+    //file(fastq) into qc_files1
+    file("*_fastqc.{zip,html}") into qc_files1
+    file fastq into fastq_files2
+    file "*_fastqc.{zip,html}" into qc_files 
     """
     fastqc ${fastq}
     """
 }
 
-qc_files1.collect().print()
+qc_files1.collect().concat(fastq_files2.collect()).print()
 
 process multiqc {
 
@@ -32,7 +34,7 @@ process multiqc {
     publishDir params.out, mode: 'copy', overwrite: true
 
     input:
-    file reports from qc_files.collect().ifEmpty([])
+    file(reports) from qc_files.collect().ifEmpty([])
 
     output:
     path "multiqc_report.html" into records
